@@ -4,31 +4,49 @@ class DeleteEvent {
     private readonly loadGroupRepository: ILoadGroupRepository
   ) {}
 
-  async perform ({ id }: { id: string, userId: string}): Promise<void> {
-    await this.loadGroupRepository.load({ eventId: id })
+  async perform ({ id, userId }: { id: string, userId: string}): Promise<void> {
+    const group = await this.loadGroupRepository.load({ eventId: id })
+    if (group === undefined) throw new Error()
+    if (group.users.find(user => user.id === userId) === undefined) throw new Error()
   }
 }
 
 interface ILoadGroupRepository {
   load: (input: {
     eventId: string
-  }) => Promise<void>
+  }) => Promise<Group | undefined>
 }
 /*
   Mock = Propriedades usadas para observar coisas (preucupacao com as entradas)
   Stub = Retorno fixo de uma funcao
 */
+
+type Group = {
+  users: GroupUser[]
+}
+
+type GroupUser = {
+  id: string
+  permission: string
+}
+
 class LoadGroupRepositoryMock implements ILoadGroupRepository {
   eventId?: string
   callsCount = 0
+  output?: Group = {
+    users: [
+      { id: 'any_user_id', permission: 'any' }
+    ]
+  }
   // eventId: string | undefined
 
   //   constructor (id: string) {
   //     this.eventId = id
   //
-  async load ({ eventId }: { eventId: string }): Promise<void> {
+  async load ({ eventId }: { eventId: string }): Promise<Group | undefined> {
     this.eventId = eventId
     this.callsCount++
+    return this.output
   }
 }
 
@@ -47,11 +65,12 @@ const makeSut = (): SutTypes => {
 }
 
 describe('DeleteEvent', () => {
+  const id = 'any_event_id'
+  const userId = 'any_user_id'
+
   it('Should get group data', async () => {
     // Crie a instancia da classe que sera testada
     // 3A - Arrange, Act, Assert (Organizar, agir, afirmar)
-    const id = 'any_event_id'
-    const userId = 'any_user_id'
     const { sut, loadGroupRepository } = makeSut()
 
     await sut.perform({
@@ -61,5 +80,33 @@ describe('DeleteEvent', () => {
 
     expect(loadGroupRepository.eventId).toBe(id)
     expect(loadGroupRepository.callsCount).toBe(1)
+  })
+
+  it('Should throw if eventId is invalid', async () => {
+    const { sut, loadGroupRepository } = makeSut()
+    loadGroupRepository.output = undefined
+
+    const promise = sut.perform({
+      id,
+      userId
+    })
+
+    await expect(promise).rejects.toThrowError()
+  })
+
+  it('Should throw if eventId is invalid', async () => {
+    const { sut, loadGroupRepository } = makeSut()
+    loadGroupRepository.output = {
+      users: [
+        { id: 'any_user_id', permission: 'any' }
+      ]
+    }
+
+    const promise = sut.perform({
+      id,
+      userId: 'invalid_id'
+    })
+
+    await expect(promise).rejects.toThrowError()
   })
 })
