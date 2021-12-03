@@ -6,7 +6,7 @@
 
 ## Fluxo primario
 1. Obter os dados do grupo da pelada a ser removida
-2. Verificar se o usuario que solicitou a exclusão da pelada tem permissão (admin aou dono)
+2. Verificar se o usuario que solicitou a exclusão da pelada tem permissão (admin ou dono)
 3. Remover a pelada com o Id acima
 4. Remover todas as partidas dessa Pelada
 

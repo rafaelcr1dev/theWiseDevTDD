@@ -18,7 +18,7 @@ interface ILoadGroupRepository {
   }) => Promise<Group | undefined>
 }
 /*
-  Mock = Propriedades usadas para observar coisas (preucupacao com as entradas)
+  Mock = Propriedades usadas para observar coisas (preocupacao com as entradas)
   Stub = Retorno fixo de uma funcao
 */
 
@@ -28,7 +28,7 @@ type Group = {
 
 type GroupUser = {
   id: string
-  permission: string
+  permission: 'owner' | 'admin' | 'user'
 }
 
 class LoadGroupRepositoryMock implements ILoadGroupRepository {
@@ -36,7 +36,7 @@ class LoadGroupRepositoryMock implements ILoadGroupRepository {
   callsCount = 0
   output?: Group = {
     users: [
-      { id: 'any_user_id', permission: 'any' }
+      { id: 'any_user_id', permission: 'admin' }
     ]
   }
   // eventId: string | undefined
@@ -99,7 +99,7 @@ describe('DeleteEvent', () => {
     const { sut, loadGroupRepository } = makeSut()
     loadGroupRepository.output = {
       users: [
-        { id: 'any_user_id', permission: 'any' }
+        { id: 'any_user_id', permission: 'admin' }
       ]
     }
 
@@ -125,5 +125,37 @@ describe('DeleteEvent', () => {
     })
 
     await expect(promise).rejects.toThrowError()
+  })
+
+  it('Should not throw if permission is admin', async () => {
+    const { sut, loadGroupRepository } = makeSut()
+    loadGroupRepository.output = {
+      users: [
+        { id: 'any_user_id', permission: 'admin' }
+      ]
+    }
+
+    const promise = sut.perform({
+      id,
+      userId
+    })
+
+    await expect(promise).resolves.not.toThrowError()
+  })
+
+  it('Should not throw if permission is owner', async () => {
+    const { sut, loadGroupRepository } = makeSut()
+    loadGroupRepository.output = {
+      users: [
+        { id: 'any_user_id', permission: 'owner' }
+      ]
+    }
+
+    const promise = sut.perform({
+      id,
+      userId
+    })
+
+    await expect(promise).resolves.not.toThrowError()
   })
 })
