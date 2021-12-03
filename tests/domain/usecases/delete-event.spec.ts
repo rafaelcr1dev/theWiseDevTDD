@@ -20,6 +20,7 @@ interface ILoadGroupRepository {
 /*
   Mock = Propriedades usadas para observar coisas (preocupacao com as entradas)
   Stub = Retorno fixo de uma funcao
+  spy = Ambos
 */
 
 type Group = {
@@ -31,7 +32,7 @@ type GroupUser = {
   permission: 'owner' | 'admin' | 'user'
 }
 
-class LoadGroupRepositoryMock implements ILoadGroupRepository {
+class LoadGroupRepositorySpy implements ILoadGroupRepository {
   eventId?: string
   callsCount = 0
   output?: Group = {
@@ -53,11 +54,11 @@ class LoadGroupRepositoryMock implements ILoadGroupRepository {
 
 type SutTypes = {
   sut: DeleteEvent
-  loadGroupRepository: LoadGroupRepositoryMock
+  loadGroupRepository: LoadGroupRepositorySpy
 }
 
 const makeSut = (): SutTypes => {
-  const loadGroupRepository = new LoadGroupRepositoryMock()
+  const loadGroupRepository = new LoadGroupRepositorySpy()
   const sut = new DeleteEvent(loadGroupRepository)
   return {
     sut,
