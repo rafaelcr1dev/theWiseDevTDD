@@ -1,93 +1,11 @@
-class DeleteEvent {
-  // loadGroupRepository: LoadGroupRepository
-  constructor (
-    private readonly loadGroupRepository: ILoadGroupRepository,
-    private readonly deleteEventRepository: IDeleteEventRepository,
-    private readonly deleteMatchRepository: IDeleteMatchRepository
-  ) {}
-
-  async perform ({ id, userId }: { id: string, userId: string}): Promise<void> {
-    const group = await this.loadGroupRepository.load({ eventId: id })
-    if (group === undefined) throw new Error()
-    if (group.users.find(user => user.id === userId) === undefined) throw new Error()
-    if (group.users.find(user => user.id === userId)?.permission === 'user') throw new Error()
-    await this.deleteEventRepository.delete({ id })
-    await this.deleteMatchRepository.delete({ eventId: id })
-  }
-}
-
-interface ILoadGroupRepository {
-  load: (input: {
-    eventId: string
-  }) => Promise<Group | undefined>
-}
-
-interface IDeleteEventRepository {
-  delete: (input: {
-    id: string
-  }) => Promise<void>
-}
-
-interface IDeleteMatchRepository {
-  delete: (eventId: {
-    eventId: string
-  }) => Promise<void>
-}
+import { DeleteEvent } from '@/domain/usecases'
+import { DeleteEventRepositoryMock, DeleteMatchRepositoryMock, LoadGroupRepositorySpy } from '@/tests/domain/repositories'
 
 /*
   Mock = Propriedades usadas para observar coisas (preocupacao com as entradas)
   Stub = Retorno fixo de uma funcao
   spy = Ambos
 */
-
-type Group = {
-  users: GroupUser[]
-}
-
-type GroupUser = {
-  id: string
-  permission: 'owner' | 'admin' | 'user'
-}
-
-class LoadGroupRepositorySpy implements ILoadGroupRepository {
-  eventId?: string
-  callsCount = 0
-  output?: Group = {
-    users: [
-      { id: 'any_user_id', permission: 'admin' }
-    ]
-  }
-  // eventId: string | undefined
-
-  //   constructor (id: string) {
-  //     this.eventId = id
-  //
-  async load ({ eventId }: { eventId: string }): Promise<Group | undefined> {
-    this.eventId = eventId
-    this.callsCount++
-    return this.output
-  }
-}
-
-class DeleteEventRepositoryMock implements IDeleteEventRepository {
-  id?: string
-  callsCount = 0
-
-  async delete ({ id }: { id: string }): Promise<void> {
-    this.id = id
-    this.callsCount++
-  }
-}
-
-class DeleteMatchRepositoryMock implements IDeleteMatchRepository {
-  eventId?: string
-  callsCount = 0
-
-  async delete ({ eventId }: { eventId: string }): Promise<void> {
-    this.eventId = eventId
-    this.callsCount++
-  }
-}
 
 type SutTypes = {
   sut: DeleteEvent
