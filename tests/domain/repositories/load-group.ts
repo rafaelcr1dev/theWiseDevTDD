@@ -4,11 +4,9 @@ import { ILoadGroupRepository } from '@/domain/repositories'
 export class LoadGroupRepositorySpy implements ILoadGroupRepository {
   eventId?: string
   callsCount = 0
-  output?: Group = {
-    users: [
-      { id: 'any_user_id', permission: 'admin' }
-    ]
-  }
+  output?: Group = new Group({
+    users: [{ id: 'any_user_id', permission: 'admin' }]
+  })
   // eventId: string | undefined
 
   //   constructor (id: string) {
